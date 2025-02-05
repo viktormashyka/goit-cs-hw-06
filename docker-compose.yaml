@@ -10,3 +10,14 @@ services:
       - "5001:5000" # Проксіювання порту 5000 на хості до порту 5000 в контейнері
     environment:
       - MONGO_URL=mongodb+srv://vmashyka:0gdAJopgSfzuVUPW@cluster0.q0h5hq6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&tlsAllowInvalidCertificates=true
+    volumes:
+      - ./storage/data.json:/app/data.json # Підключення файлу data.json до контейнера
+    depends_on:
+      - mongo # Залежність від сервісу mongo
+
+  # Сервіс для MongoDB
+  mongo:
+    image: mongo:latest
+    container_name: mongo_container
+    ports:
+      - "27017:27017"

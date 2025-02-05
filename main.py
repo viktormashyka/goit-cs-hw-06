@@ -1,9 +1,13 @@
 import asyncio
 import json
+import logging
 from aiohttp import web
 import websockets
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 # MongoDB connection
 client = MongoClient(
@@ -19,15 +23,19 @@ async def handler(websocket): # add "path" as second argument if needed
             result = db.messages.insert_one(data)
             stored_data = db.messages.find_one({"_id": result.inserted_id})
             if stored_data:
-                print(f"Data stored in MongoDB: {stored_data}")
+                logging.info(f"Data stored in MongoDB: {stored_data}")
             else:
-                print("Data not found in MongoDB after insertion")
+                logging.info("Data not found in MongoDB after insertion")
 
             # Convert ObjectId to string for JSON serialization
             stored_data['_id'] = str(stored_data['_id'])
 
+            # Write data to data.json
+            with open('/app/data.json', 'w') as f:
+                json.dump(stored_data, f)
+
         except Exception as e:
-            print(f"Error processing message: {e}")
+            logging.error(f"Error processing message: {e}")
             stored_data = {"status": "error", "message": str(e)}
 
         # Process the data as needed
@@ -35,18 +43,25 @@ async def handler(websocket): # add "path" as second argument if needed
         await websocket.send(json.dumps(response))
 
 async def websocket_server():
-    async with websockets.serve(handler, "localhost", 5000):
+    logging.info("Starting WebSocket server on port 5000")
+    async with websockets.serve(handler, "0.0.0.0", 5000):
         await asyncio.Future()  # run forever
 
 async def http_handler(request):
     return web.Response(text="Hello, this is the HTTP server!")
 
+async def serve_static(request):
+    return web.FileResponse('./message.html')
+
 async def init_http_server():
+    logging.info("Starting HTTP server on port 3000")
     app = web.Application()
     app.router.add_get('/', http_handler)
+    app.router.add_get('/message.html', serve_static)
+    app.router.add_static('/static', './')
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, 'localhost', 3000)
+    site = web.TCPSite(runner, '0.0.0.0', 3000)
     await site.start()
 
 async def main():
@@ -56,4 +71,5 @@ async def main():
     )
 
 if __name__ == "__main__":
+    logging.info("Starting servers...")
     asyncio.run(main())

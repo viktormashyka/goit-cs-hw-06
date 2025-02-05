@@ -1,23 +1,21 @@
-# Docker-команда FROM вказує базовий образ контейнера
-# Наш базовий образ - це Linux з попередньо встановленим python-3.10
-FROM python:3.10
+# Use an official Python runtime as a parent image
+FROM python:3.10-slim
 
-# Встановимо змінну середовища
-ENV APP_HOME /app
+# Set the working directory in the container
+WORKDIR /app
 
-# Встановимо робочу директорію всередині контейнера
-WORKDIR $APP_HOME
-
-# Скопіюємо інші файли в робочу директорію контейнера
+# Copy the current directory contents into the container at /app
 COPY . .
 
-# Встановимо залежності всередині контейнера
-RUN pip install -r requirements.txt
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Позначимо порти, де працює застосунок всередині контейнера
+# Install iproute2 for ss command
+RUN apt-get update && apt-get install -y iproute2
+
+# Make ports 3000 and 5000 available to the world outside this container
 EXPOSE 3000
 EXPOSE 5000
 
-
-# Запустимо наш застосунок всередині контейнера
-ENTRYPOINT ["python", "main.py"]
+# Run main.py when the container launches
+CMD ["python", "main.py"]
