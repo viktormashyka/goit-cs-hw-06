@@ -46,7 +46,7 @@ async def handler(websocket): # add path as second argument if needed
         await websocket.send(json.dumps(response))
 
 async def main():
-    async with websockets.serve(handler, "localhost", 8080):
+    async with websockets.serve(handler, "localhost", 5000):
         await asyncio.Future()  # run forever
 
 if __name__ == "__main__":

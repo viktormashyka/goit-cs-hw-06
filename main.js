@@ -2,7 +2,7 @@ const form = document.getElementById("form");
 const floatingInput = document.getElementById("floatingInput");
 const floatingTextarea = document.getElementById("floatingTextarea");
 
-let ws = new WebSocket("ws://localhost:8080");
+let ws = new WebSocket("ws://localhost:5000");
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();

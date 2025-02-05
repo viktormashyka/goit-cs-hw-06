@@ -14,10 +14,10 @@ COPY . .
 # Встановимо залежності всередині контейнера
 RUN pip install -r requirements.txt
 
-# Позначимо порт, де працює застосунок всередині контейнера
-EXPOSE 5000 # TODO: check if need 8000 | 3000 | 5000
+# Позначимо порти, де працює застосунок всередині контейнера
+EXPOSE 3000
+EXPOSE 5000
+
 
 # Запустимо наш застосунок всередині контейнера
 ENTRYPOINT ["python", "main.py"]
-
-# CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"] TODO: check this

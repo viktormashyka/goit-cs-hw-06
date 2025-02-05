@@ -6,7 +6,8 @@ services:
     build: .
     container_name: app_container
     ports:
-      - "8080:8000" # Проксіювання порту 8080 на хості до порту 8000 в контейнері
+      - "3000:3000" # Проксіювання порту 3000 на хості до порту 3000 в контейнері
+      - "5000:5000" # Проксіювання порту 5000 на хості до порту 5000 в контейнері
     environment:
       - DATABASE_URL=postgresql+psycopg2://postgres:567234@db:5432/hw02
     depends_on:
