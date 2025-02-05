@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  # Сервіс для застосунку
+  app:
+    build: .
+    container_name: app_container
+    ports:
+      - "8080:8000" # Проксіювання порту 8080 на хості до порту 8000 в контейнері
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:567234@db:5432/hw02
+    depends_on:
+      - db # Залежність від сервісу бази даних
+
+  # Сервіс для PostgreSQL
+  db:
+    image: postgres:13
+    container_name: db_container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 567234
+      POSTGRES_DB: hw02
+    ports:
+      - "5432:5432"
