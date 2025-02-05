@@ -1,9 +1,9 @@
 import asyncio
-import websockets
 import json
+from aiohttp import web
+import websockets
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
-from bson import ObjectId
 
 # MongoDB connection
 client = MongoClient(
@@ -12,22 +12,11 @@ client = MongoClient(
 )
 db = client.test
 
-async def handler(websocket): # add path as second argument if needed
+async def handler(websocket): # add "path" as second argument if needed
     async for message in websocket:
         try:
             data = json.loads(message)
-            print(f"Received data: {data}")
-
-            # Ensure data is a dictionary
-            if not isinstance(data, dict):
-                raise ValueError("Data is not a dictionary")
-
-            # Store data in MongoDB
-            print("Storing data in MongoDB")
             result = db.messages.insert_one(data)
-            print(f"Data inserted with id: {result.inserted_id}")
-
-            # Verify insertion
             stored_data = db.messages.find_one({"_id": result.inserted_id})
             if stored_data:
                 print(f"Data stored in MongoDB: {stored_data}")
@@ -45,9 +34,26 @@ async def handler(websocket): # add path as second argument if needed
         response = {"status": "success", "data": stored_data}
         await websocket.send(json.dumps(response))
 
-async def main():
+async def websocket_server():
     async with websockets.serve(handler, "localhost", 5000):
         await asyncio.Future()  # run forever
+
+async def http_handler(request):
+    return web.Response(text="Hello, this is the HTTP server!")
+
+async def init_http_server():
+    app = web.Application()
+    app.router.add_get('/', http_handler)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, 'localhost', 3000)
+    await site.start()
+
+async def main():
+    await asyncio.gather(
+        websocket_server(),
+        init_http_server()
+    )
 
 if __name__ == "__main__":
     asyncio.run(main())
