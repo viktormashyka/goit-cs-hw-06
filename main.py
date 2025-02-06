@@ -5,6 +5,7 @@ from aiohttp import web
 import websockets
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -16,10 +17,11 @@ client = MongoClient(
 )
 db = client.test
 
-async def handler(websocket): # add "path" as second argument if needed
+async def handler(websocket): # add "path" parameter if needed
     async for message in websocket:
         try:
             data = json.loads(message)
+            data["date"] = datetime.now().isoformat()
             result = db.messages.insert_one(data)
             stored_data = db.messages.find_one({"_id": result.inserted_id})
             if stored_data:
@@ -53,12 +55,19 @@ async def http_handler(request):
 async def serve_static(request):
     return web.FileResponse('./message.html')
 
+async def serve_index(request):
+    return web.FileResponse('./index.html')
+
+async def serve_error(request):
+    return web.FileResponse('./error.html')
+
 async def init_http_server():
     logging.info("Starting HTTP server on port 3000")
     app = web.Application()
-    app.router.add_get('/', http_handler)
+    app.router.add_get('/', serve_index)
     app.router.add_get('/message.html', serve_static)
-    app.router.add_static('/static', './')
+    app.router.add_static('/static', './static')
+    app.router.add_get('/{tail:.*}', serve_error)
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', 3000)
